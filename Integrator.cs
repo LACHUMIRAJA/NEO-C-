@@ -2,7 +2,7 @@ using Neo.SmartContract.Framework;
 using Neo.SmartContract.Framework.Services.Neo;
 using System;
 
-namespace OrderVault
+namespace Integrator
 {
     public class Contract1 : SmartContract
     {
