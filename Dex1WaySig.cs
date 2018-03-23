@@ -1,7 +1,7 @@
 using Neo.SmartContract.Framework;
 using Neo.SmartContract.Framework.Services.Neo;
 using System;
-
+using System.Numerics;
 
 namespace Dex1WaySig
 {
@@ -11,8 +11,8 @@ namespace Dex1WaySig
         {
 
             string version = "0.1";
-            bool activated;
-            string wallet;
+            bool activated = false ;
+            string wallet = null;
             string baseToken = null;
             string etherToken = null;
             string activeVaultAddr;
@@ -162,8 +162,9 @@ namespace Dex1WaySig
 
 
                 // sellerHash = VerifySignatures(_sellerTokens, _sellerValues, _orderValues[3], _orderValues[0], _orderAddresses[3], _orderAddresses[0], _orderAddresses[1], _orderID);
-                //BuyerHash = Hash256(_buyerTokens, _buyerValues, _orderValues[4], _orderValues[1], _orderAddresses[4], _orderAddresses[0], _orderAddresses[2], _orderID);
+                //BuyerHash = Sha256(_buyerTokens, _buyerValues, _orderValues[4], _orderValues[1], _orderAddresses[4], _orderAddresses[0], _orderAddresses[2], _orderID);
 
+                
 
                 return true;
             }
@@ -172,23 +173,135 @@ namespace Dex1WaySig
             {
                 string[] _sellerTokens = (string[])args[0];
                 string[] _buyerTokens = (string[])args[1];
-                uint[] _sellerValues = (uint[])args[2];
-                uint[] _buyerValues = (uint[])args[3];
+               BigInteger[] _sellerValues = (BigInteger[])args[2];
+               BigInteger[] _buyerValues = (BigInteger[])args[3];
+
                 string[] _orderAddresses = new string[5];
                 _orderAddresses = (string[])args[4];
-                uint[] _orderValues = (uint[])args[5];
+
+               uint[] _orderValues = new uint[5];
+               _orderValues = (uint[])args[5];
 
                 int len = _sellerTokens.Length;
+                //Storage.Delete(Storage.CurrentContext, "");
+                Storage.Put(Storage.CurrentContext, _orderAddresses[1], _orderValues[0]);
+                Storage.Put(Storage.CurrentContext, _orderAddresses[2], _orderValues[1]);
+
+                
+               
 
                 for (uint i = 0; i < len; i++)
                 {
-                    //transferFrom(_orderAddresses[1], _orderAddresses[2], _sellerValues[i]);
+                    Runtime.Log("In");
+                    Main("transfer", _orderAddresses[1], _orderAddresses[2], _sellerValues[i]);
+                   
+
                 }
+
+                Runtime.Log("SellerValues Are Transferred Successfully");
+
+                int len1 = _buyerTokens.Length;
+
+                for (uint i = 0; i < len1; i++)
+                {
+                    Main("transfer", _orderAddresses[1], _orderAddresses[2], _buyerValues[i]);
+                }
+
+
+                Main("transfer", _orderAddresses[1], wallet,(_orderValues[0]));
+                Main("transfer", _orderAddresses[2], wallet,(_orderValues[1]));
 
                 //---------------------------------------------
 
                 return true;
             }
+
+
+
+            if (oper == "oneWayFulfillPO")
+            {
+                string[] _sellerTokens = (string[])args[0];
+                string[] _buyerTokens = (string[])args[1];
+                uint[] _sellerValues = (uint[])args[2];
+                uint[] _buyerValues = (uint[])args[3];
+                string[] _orderAddresses = new string[5];
+                _orderAddresses = (string[])args[4];
+                uint[] _orderValues = new uint[5];
+                _orderValues = (uint[])args[5];
+                uint[] _v = new uint[2];
+                _v = (uint[])args[6];
+                string _br = (string)args[7];
+                string _bs = (string)args[8];
+                string _sr = (string)args[9];
+                string _ss = (string)args[10];
+                string _orderID = (string)args[11];
+                uint now = (uint)args[12];
+
+                if (activated == true && _orderValues[2] >= now)
+                {
+
+                    if ("msg.sender" != _orderAddresses[1] && "msg.sender" != _orderAddresses[2])// && !authorized[msg.sender])
+                    {
+
+                        return false;
+                    }
+                }
+
+
+                // (sellerHash  BuyerHash) == return Main("getOneWayOrderHashes",_sellerTokens, _buyerTokens, _sellerValues, _buyerValues, _orderAddresses, _orderValues, _orderID);
+
+
+                if (Main("basicSigValidations", _orderAddresses, _v, _sr, _ss, _br, _bs, sellerHash, BuyerHash) != null)
+                {
+
+                    return false;
+                }
+
+                //------
+
+                if (_orderValues[0] > 0 && _orderValues[1] > 0 && _orderAddresses[0] != null && _orderAddresses[1] != null && _orderAddresses[2] != null && _orderAddresses[1] != _orderAddresses[2] && _sellerTokens.Length > 0 && _sellerValues.Length > 0 && _sellerTokens.Length == _sellerValues.Length && _buyerTokens.Length > 0 && _buyerValues.Length > 0 && _buyerTokens.Length == _buyerValues.Length)
+                {
+
+                }
+
+                ///------
+            }
+
+
+
+            if (oper == "transfer")
+            {
+              string from = (string)args[0];
+              string to = (string)args[1];
+               BigInteger value = (BigInteger)args[2];
+
+               
+
+                if (value <= 0) return false;
+               
+                if (from == to) return true;
+               
+                BigInteger from_value = 55;// Storage.Get(Storage.CurrentContext, from).AsBigInteger();
+               
+                if (from_value < value) return false;
+               
+                if (from_value == value)
+                {
+                    Storage.Delete(Storage.CurrentContext, from);
+                  
+                }
+
+                else
+                    Storage.Put(Storage.CurrentContext, from, from_value - value);
+               
+
+                BigInteger to_value = 50;// Storage.Get(Storage.CurrentContext, to).AsBigInteger();
+                Storage.Put(Storage.CurrentContext, to, to_value + value);
+
+               
+               
+            }
+
 
             if (oper == "basicSigValidations")
             {
