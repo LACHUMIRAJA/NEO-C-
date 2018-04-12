@@ -15,30 +15,30 @@ namespace Integrator
 
             String address0 = "ANiSxR6mgYZxhTXpJqzjcnyFCQ16HVaC4W";
 
-        string approver;
+            string approver;
 
-            switch(oper)
+            switch (oper)
             {
                 case "changeApprover":
                     {
                         string newApprover = (string)args[0];
-                      if(!(newApprover.Equals(address0)))
-                       {
+                        if (!(newApprover.Equals(address0)))
+                        {
                             approver = newApprover;
                             // LogApproverChanged(approver, newApprover);
                             Runtime.Log("Approver Changed");
                             Storage.Put(Storage.CurrentContext, "Approver", approver);
                             return true;
 
-                      }
-                      return false;
+                        }
+                        return false;
 
                     }
 
                 case "addAutherizedAddress":
                     {
                         string appIntegrator = (string)args[0];
-                        Storage.Put(Storage.CurrentContext, appIntegrator, "true");
+                        Storage.Put(Storage.CurrentContext, appIntegrator, 1);
                         //LogAuthorizedAddressAdded(appIntegrator,owner);
                         Runtime.Log("Authorized Address Added");
                         return true;
@@ -46,15 +46,20 @@ namespace Integrator
                 case "removeAutherizedAddress":
                     {
                         string appIntegrator = (string)args[0];
-                        Storage.Put(Storage.CurrentContext, appIntegrator, "false");
+                        Storage.Put(Storage.CurrentContext, appIntegrator, 0);
+                        if(Storage.Get(Storage.CurrentContext,appIntegrator)[0]==0)
+                        {
+                            Storage.Delete(Storage.CurrentContext, appIntegrator);
+
+                        }
                         //LogAuthorizedAddressremoved(appIntegrator,owner);
                         Runtime.Log("Authorized Address Removed");
                         return true;
                     }
             }
-return false;
+            return false;
         }
 
-      
+
     }
-    }
+}
