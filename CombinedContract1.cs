@@ -755,21 +755,25 @@ namespace IntegratorandTradeFee
                 BigInteger[] _sellerValues = (BigInteger[])args[2];
                 BigInteger[] _buyerValues = (BigInteger[])args[3];
 
-                byte[] _orderAddresses = (byte[])args[4];
+                byte[][] _orderAddresses = new byte[5][];
+                _orderAddresses = (byte[][])args[4];
+
 
 
                 BigInteger[] _orderValues = new BigInteger[5];
                 _orderValues = (BigInteger[])args[5];
 
-                BigInteger allow = 0;// new BigInteger(( Main("allowance", _orderAddresses[2], address0)));
+                object a1 = (Main("allowance", _orderAddresses[2], address0));
+                BigInteger allow = (BigInteger)a1;
 
-                if (allow <= _orderValues[1])
+                if ( allow <= _orderValues[1])
                 {
                     return false;
 
                 }
 
-                BigInteger allow1 = 0;// new BigInteger((Main("allowance", _orderAddresses[1], address0)));
+                object a2 = (Main("allowance", _orderAddresses[2], address0));
+                BigInteger allow1 = (BigInteger)a2;
 
 
 
@@ -779,7 +783,8 @@ namespace IntegratorandTradeFee
 
                 }
 
-                BigInteger allow2 = 0;// new BigInteger((Main("allowance", _orderAddresses[2], address0)));
+                object a3 = (Main("allowance", _orderAddresses[2], address0));
+                BigInteger allow2 = (BigInteger) a3;
                 for (uint i = 0; i <= _buyerTokens.Length; i++)
                 {
                     if (allow2 <= _buyerValues[i])
@@ -791,7 +796,6 @@ namespace IntegratorandTradeFee
                 return true;
 
             }
-
 
             return false;
         }
