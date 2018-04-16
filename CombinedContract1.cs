@@ -503,13 +503,13 @@ namespace IntegratorandTradeFee
 
 
                 byte[] address = (byte[])args[0];
-                byte[] _msgHash = (byte[])args[1];
-                BigInteger v = (BigInteger)args[2];
-                byte[] r = (byte[])args[3];
-                byte[] s = (byte[])args[4];
-                byte[] _signer = (byte[])args[3];
+                byte _msgHash = (byte)args[1];
+                uint v = (uint)args[2];
+                byte r = (byte)args[3];
+                byte s = (byte)args[4];
+                byte[] _signer = (byte[])args[5];
 
-                return Main("ecverify", _msgHash, v, r, s, _signer);
+                return Main("ecverify", address, _msgHash, v, r, s, _signer);
 
             }
 
@@ -534,13 +534,13 @@ namespace IntegratorandTradeFee
 
                 byte[] baseToken = Storage.Get(Storage.CurrentContext, "BaseToken");
                 byte[] etherToken = Storage.Get(Storage.CurrentContext, "EtherToken");
-                if (_token != null)
+                if (_token.Length >=0)
                 {
                     if (_token == baseToken)
-                        return 0;
+                        return "0";
                     else if (_token == etherToken)
-                        return 1;
-                    return 2;
+                        return "1";
+                    return "2";
                 }
                 return false;
             }
@@ -655,13 +655,13 @@ namespace IntegratorandTradeFee
                byte[] _buyerHash = (byte[])args[7];
               
 
-                if (!(Main("ecVerify", _sellerHash, _v[0], _sr, _ss, _orderAddresses[1])).Equals(address0))
+                if (!(Main("ecverify", _sellerHash, _v[0], _sr, _ss, _orderAddresses[1])).Equals(address0))
                 {
 
                     return _orderAddresses[1];
                 }
 
-                if (!(Main("ecVerify", _sellerHash, _v[1], _sr, _ss, _orderAddresses[2])).Equals(address0))
+                if (!(Main("ecverify", _sellerHash, _v[1], _sr, _ss, _orderAddresses[2])).Equals(address0))
                 {
                     return _orderAddresses[2];
                 }
@@ -726,7 +726,9 @@ namespace IntegratorandTradeFee
                     
                 }
 
-                BigInteger allow1 = 0;// new BigInteger((Main("allowance", _orderAddresses[1], address0)));
+               BigInteger allow1 = 0;// new BigInteger((Main("allowance", _orderAddresses[1], address0)));
+
+                
 
                 if (allow1 <= _orderValues[1])
                 {
