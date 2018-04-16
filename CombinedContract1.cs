@@ -13,7 +13,7 @@ namespace IntegratorandTradeFee
 
             //TRADEFEE_CONTRACT
 
-            byte[] address0 = Neo.SmartContract.Framework.Helper.AsByteArray("AMiSxR6mgYZxhTXpJqzjcnyFCQ16HVaC8W");
+            byte[] address0 = Neo.SmartContract.Framework.Helper.AsByteArray("abavag");
             byte[] approver;
 
             //BigInteger orderHashes = 0;
@@ -534,7 +534,7 @@ namespace IntegratorandTradeFee
 
                 byte[] baseToken = Storage.Get(Storage.CurrentContext, "BaseToken");
                 byte[] etherToken = Storage.Get(Storage.CurrentContext, "EtherToken");
-                if (_token.Length >=0)
+                if (_token.Length >= 0)
                 {
                     if (_token == baseToken)
                         return "0";
@@ -570,25 +570,26 @@ namespace IntegratorandTradeFee
             }
 
 
-
-            if (oper == "trasnferForTokens")
+            if (oper == "trasnferForTokens") //[["sellerT","sellerT1"],["buyerT","buyerT1"],[500,450],[458,444],["AA1","BB1","CC1"],[540,450,580]]
             {
-                byte[] _sellerTokens = (byte[])args[0];
-                byte[] _buyerTokens = (byte[])args[1];
+                byte[][] _sellerTokens = (byte[][])args[0];
+                byte[][] _buyerTokens = (byte[][])args[1];
                 BigInteger[] _sellerValues = (BigInteger[])args[2];
                 BigInteger[] _buyerValues = (BigInteger[])args[3];
 
-                byte[] _orderAddresses = (byte[])args[4];
+                byte[][] _orderAddresses = new byte[5][];
+                _orderAddresses = (byte[][])args[4];
 
 
                 BigInteger[] _orderValues = new BigInteger[5];
                 _orderValues = (BigInteger[])args[5];
 
                 int len = _sellerTokens.Length;
-
+                Runtime.Notify(_orderAddresses[1], _sellerTokens.Length);
                 for (uint i = 0; i < len; i++)
                 {
                     Runtime.Log("In");
+                    Runtime.Notify(_orderAddresses[1], _orderAddresses[2], _sellerValues[0]);
                     Main("transferFrom", _orderAddresses[1], _orderAddresses[2], _sellerValues[i]);
                 }
 
@@ -611,6 +612,25 @@ namespace IntegratorandTradeFee
             }
 
 
+            if (oper == "deposit")
+            {
+                byte[] acc = (byte[])args[0];
+                BigInteger val = (BigInteger)args[1];
+                Runtime.Log("Deposited Successfully");
+                Storage.Put(Storage.CurrentContext, acc, val);
+            }
+
+            if (oper == "balanceOf")
+            {
+                byte[] acc = (byte[])args[0];
+                BigInteger balance = Neo.SmartContract.Framework.Helper.AsBigInteger(Storage.Get(Storage.CurrentContext, acc));
+                
+                Runtime.Log("Balance - ");                
+                Runtime.Notify(balance+0);
+
+                return Storage.Get(Storage.CurrentContext, acc);
+            }
+
 
             if (oper == "transferFrom")
             {
@@ -618,42 +638,61 @@ namespace IntegratorandTradeFee
                 byte[] to = (byte[])args[1];
                 BigInteger value = (BigInteger)args[2];
 
-                //if (value <= 0) return false;
+                BigInteger from_value = Neo.SmartContract.Framework.Helper.AsBigInteger(Storage.Get(Storage.CurrentContext, from));
+
+                if (value <= 0 || from_value < value) {
+
+                    Runtime.Log("Insufficient Balance... If You Want to Deposit please use Deposit Function..");
+                    return false;
+                }
 
                 if (from == to) return true;
 
-                Storage.Put(Storage.CurrentContext, from, 2000);
 
-                BigInteger from_value =  Neo.SmartContract.Framework.Helper.AsBigInteger(Storage.Get(Storage.CurrentContext, from));
-
-                //if (from_value < value) return false;
-                Runtime.Log("Transfer");
+                //BigInteger from_value = 500000;// if you need to test choose this
+              
 
                
+                Runtime.Log("Transfer Process ");
 
-                //if (from_value > value)
+
+
+                if (from_value > value)
                 {
-                    Storage.Put(Storage.CurrentContext, from, from_value - value);
+                    BigInteger bal = from_value - value;
+                    Runtime.Notify(from);
+                    Runtime.Log("Balance: ");
+                    Runtime.Notify(bal);
+                    Storage.Put(Storage.CurrentContext, from, bal);
                     BigInteger to_value = Neo.SmartContract.Framework.Helper.AsBigInteger(Storage.Get(Storage.CurrentContext, to));
-                    Storage.Put(Storage.CurrentContext, to, to_value + value);
+
+                    BigInteger bal1 = to_value + value;
+                    Storage.Put(Storage.CurrentContext, to, bal1);
+                    Runtime.Notify(to);
+                    Runtime.Log("Balance: ");
+                    Runtime.Notify(bal1);
+                    Runtime.Log("-------------------");
+                    return true;
                 }
+
+
             }
 
             if (oper == "basicSigValidations")
             {
-               byte[] _orderAddresses = (byte[])args[0];
+                byte[] _orderAddresses = (byte[])args[0];
 
-                
+
                 uint[] _v = new uint[2];
                 _v = (uint[])args[1];
 
-               byte[] _sr = (byte[])args[2];
-               byte[] _ss = (byte[])args[3];
-               byte[] _br = (byte[])args[4];
-               byte[] _bs = (byte[])args[5];
-               byte[] _sellerHash = (byte[])args[6];
-               byte[] _buyerHash = (byte[])args[7];
-              
+                byte[] _sr = (byte[])args[2];
+                byte[] _ss = (byte[])args[3];
+                byte[] _br = (byte[])args[4];
+                byte[] _bs = (byte[])args[5];
+                byte[] _sellerHash = (byte[])args[6];
+                byte[] _buyerHash = (byte[])args[7];
+
 
                 if (!(Main("ecverify", _sellerHash, _v[0], _sr, _ss, _orderAddresses[1])).Equals(address0))
                 {
@@ -670,23 +709,23 @@ namespace IntegratorandTradeFee
 
             }
 
-            if(oper=="orderExists")
+            if (oper == "orderExists")
             {
 
-                byte[] _hash=(byte[])args[0];
+                byte[] _hash = (byte[])args[0];
                 byte[] _orderId = (byte[])args[0];
 
-                if(Main("orderLocated", _hash, _orderId)!=null)
+                if (Main("orderLocated", _hash, _orderId) != null)
                 {
                     return true;
                 }
 
                 return false;
-                     
+
             }
 
 
-            if(oper=="approve")
+            if (oper == "approve")
             {
                 byte[] add1 = (byte[])args[0];
                 byte[] add2 = (byte[])args[1];
@@ -695,17 +734,17 @@ namespace IntegratorandTradeFee
                 return true;
             }
 
-            if(oper=="allowance")
+            if (oper == "allowance")
             {
                 byte[] add1 = (byte[])args[0];
                 byte[] add2 = (byte[])args[1];
-               return  Storage.Get(Storage.CurrentContext, add1.Concat(add2));
+                return Storage.Get(Storage.CurrentContext, add1.Concat(add2));
 
             }
 
 
 
-            if(oper== "validateAuthorization")
+            if (oper == "validateAuthorization")
             {
                 byte[] _sellerTokens = (byte[])args[0];
                 byte[] _buyerTokens = (byte[])args[1];
@@ -720,15 +759,15 @@ namespace IntegratorandTradeFee
 
                 BigInteger allow = 0;// new BigInteger(( Main("allowance", _orderAddresses[2], address0)));
 
-                if(allow <= _orderValues[1])
+                if (allow <= _orderValues[1])
                 {
                     return false;
-                    
+
                 }
 
-               BigInteger allow1 = 0;// new BigInteger((Main("allowance", _orderAddresses[1], address0)));
+                BigInteger allow1 = 0;// new BigInteger((Main("allowance", _orderAddresses[1], address0)));
 
-                
+
 
                 if (allow1 <= _orderValues[1])
                 {
@@ -749,9 +788,11 @@ namespace IntegratorandTradeFee
 
             }
 
+
             return false;
         }
     }
 }
+    
 
 
