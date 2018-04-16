@@ -13,7 +13,7 @@ namespace IntegratorandTradeFee
 
             //TRADEFEE_CONTRACT
 
-            byte[] address0 = Neo.SmartContract.Framework.Helper.AsByteArray("abavag");
+            byte[] address0 = Neo.SmartContract.Framework.Helper.AsByteArray("AMiSxR6mgYZxhTXpJqzjcnyFCQ16HVaC8W");
             byte[] approver;
 
             //BigInteger orderHashes = 0;
