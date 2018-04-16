@@ -552,8 +552,8 @@ namespace IntegratorandTradeFee
                 byte[] _buyerTokens = (byte[])args[1];
                 BigInteger[] _sellerValues = (BigInteger[])args[2];
                 BigInteger[] _buyerValues = (BigInteger[])args[3];
-                byte[] _orderAddresses = new byte[5];
-                _orderAddresses = (byte[])args[4];
+                byte[][] _orderAddresses = new byte[5][];
+                _orderAddresses = (byte[][])args[4];
 
                 BigInteger[] _orderValues = new BigInteger[5];
                 _orderValues = (BigInteger[])args[5];
@@ -616,8 +616,11 @@ namespace IntegratorandTradeFee
             {
                 byte[] acc = (byte[])args[0];
                 BigInteger val = (BigInteger)args[1];
-                Runtime.Log("Deposited Successfully");
-                Storage.Put(Storage.CurrentContext, acc, val);
+                Runtime.Log("Deposited Successfully Balance -");
+                BigInteger balance = Neo.SmartContract.Framework.Helper.AsBigInteger(Storage.Get(Storage.CurrentContext, acc));
+                BigInteger total = balance + val;
+                Storage.Put(Storage.CurrentContext, acc, total);
+                Runtime.Notify(total);
             }
 
             if (oper == "balanceOf")
@@ -680,7 +683,8 @@ namespace IntegratorandTradeFee
 
             if (oper == "basicSigValidations")
             {
-                byte[] _orderAddresses = (byte[])args[0];
+                byte[][] _orderAddresses = new byte[5][];
+                _orderAddresses = (byte[][])args[0];
 
 
                 uint[] _v = new uint[2];
