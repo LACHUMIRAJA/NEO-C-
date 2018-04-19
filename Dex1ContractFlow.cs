@@ -1,29 +1,32 @@
 using Neo.SmartContract.Framework;
 using Neo.SmartContract.Framework.Services.Neo;
+using Neo.SmartContract.Framework.Services.System;
 using System;
+using System.ComponentModel;
 using System.Numerics;
 
 namespace IntegratorandTradeFee
 {
     public class Contract1 : SmartContract
     {
+        //[DisplayName("deploy1")]
+        //public static event Action<byte[], uint> deploy1;
+
         public static Object Main(string oper, params Object[] args)
         {
-                     
 
-            byte[] address0 = Neo.SmartContract.Framework.Helper.AsByteArray("abavag");
+
+           
+
+
+        byte[] address0 = Neo.SmartContract.Framework.Helper.AsByteArray("abavag");
             byte[] approver;          
             BigInteger beginTime;
             BigInteger endTime;
             
             //SELLER-BUYER_PROCESS_FLOW
 
-            if (oper == "Deploy")
-            {
-                approver = (byte[])args[0];
-                Storage.Put(Storage.CurrentContext, "Approver", approver);
-                return true;
-            }
+            
 
             if (oper == "getFeeIndex")
             {
@@ -47,22 +50,44 @@ namespace IntegratorandTradeFee
 
             if (oper == "getTwoWayOrderHash")
             {
-                byte[] _sellerTokens = (byte[])args[0];
-                byte[] _buyerTokens = (byte[])args[1];
+                byte[][] _sellerTokens =(byte[][])args[0];
+                byte[][] _buyerTokens = (byte[][])args[1];
                 BigInteger[] _sellerValues = (BigInteger[])args[2];
                 BigInteger[] _buyerValues = (BigInteger[])args[3];
                 byte[][] _orderAddresses = new byte[5][];
                 _orderAddresses = (byte[][])args[4];
+
+
 
                 BigInteger[] _orderValues = new BigInteger[5];
                 _orderValues = (BigInteger[])args[5];
 
                 byte[] _orderID = (byte[])args[6];
 
+                
 
-                //byte[] sellerHash = Hash256(_sellerTokens.Concat(_sellerValues).Concat(_orderValues[3]).Concat(_orderValues[0]).Concat(_orderAddresses[3]).Concat(_orderAddresses[0]).Concat(_orderAddresses[1]).Concat(_orderID));
-                //BuyerHash = Sha256(_buyerTokens, _buyerValues, _orderValues[4], _orderValues[1], _orderAddresses[4], _orderAddresses[0], _orderAddresses[2], _orderID);
-
+               /* int length = _sellerTokens.Length;
+                byte[] sellerv;// = new byte[length];
+                byte[] orderv = Neo.SmartContract.Framework.Helper.AsByteArray(_orderValues[3]);
+                byte[] orderv1 = Neo.SmartContract.Framework.Helper.AsByteArray(_orderValues[0]);
+                //for (int j = 0; j <= length; j++)
+                {
+                    sellerv = Neo.SmartContract.Framework.Helper.AsByteArray(_sellerValues[0]);
+                    //sellerv[0][0] = (byte)_sellerValues[0];
+                    Runtime.Notify("START");
+                  
+                    Runtime.Notify("STARTi");
+                    byte[] cc = _sellerTokens[0].Concat(sellerv);
+                    byte[] cc1 = orderv.Concat(orderv1);
+                    byte[] cc2 = _orderAddresses[0].Concat(_orderAddresses[1]);
+                    byte[] cc3= _orderAddresses[2].Concat(_orderID);
+                    byte[] oa = cc.Concat(cc1);
+                    byte[] oa1 = cc2.Concat(cc3);
+                    byte[] sellerHash = Sha256(oa.Concat(oa1));
+                    //byte[] sellerHash = Hash256(_sellerTokens[0].Concat(sellerv[0]).Concat(orderv).Concat(orderv1).Concat(_orderAddresses[0]).Concat(_orderAddresses[1]).Concat(_orderAddresses[2]).Concat(_orderID));
+                    //BuyerHash = Sha256(_buyerTokens, _buyerValues, _orderValues[4], _orderValues[1], _orderAddresses[4], _orderAddresses[0], _orderAddresses[2], _orderID);
+                    Runtime.Notify(sellerHash);
+                }*/
                 return true;
             }
 
@@ -205,6 +230,17 @@ namespace IntegratorandTradeFee
 
 
             //Trade_fee_Contract
+
+            if (oper == "Deploy")
+            {
+                Transaction tx = (Transaction)ExecutionEngine.ScriptContainer;
+                approver = (byte[])args[0];
+                Storage.Put(Storage.CurrentContext, "Approver", approver);
+                //deploy1(approver, 5);
+                
+                return true;
+            }
+
 
             if (oper == "updateFeeSchedule")
             {
@@ -446,8 +482,8 @@ namespace IntegratorandTradeFee
                 byte[] check1 = Storage.Get(Storage.CurrentContext, "Vault is Seal");
 
 
-                BigInteger now = (BigInteger)args[2];// Runtime.Time;
-
+                BigInteger now = Blockchain.GetHeader(Blockchain.GetHeight()).Timestamp;// (BigInteger)args[2];// Runtime.Time;
+                Runtime.Notify(now);
                 if (check1.Equals(0) && (check.Equals(0) && startTime <= now && closureTime >= now && closureTime >= startTime))
                 {
                     Storage.Put(Storage.CurrentContext, "starttime", startTime);
@@ -492,7 +528,7 @@ namespace IntegratorandTradeFee
 
             if (oper == "sealVault")
             {
-                BigInteger now = (BigInteger)args[0];
+                BigInteger now = Blockchain.GetHeader(Blockchain.GetHeight()).Timestamp;
 
                 byte[] check1 = Storage.Get(Storage.CurrentContext, "Vault is Seal");
 
@@ -532,7 +568,7 @@ namespace IntegratorandTradeFee
             if (oper == "extendVault")
             {
                 BigInteger closureTime = (BigInteger)args[0];
-                BigInteger now = (BigInteger)args[1];
+                BigInteger now = Blockchain.GetHeader(Blockchain.GetHeight()).Timestamp;
 
 
 
@@ -565,7 +601,7 @@ namespace IntegratorandTradeFee
 
                 byte[] oHash = (byte[])args[0];
                 byte[] orderId = ((byte[])args[1]);
-                BigInteger now = (BigInteger)args[2];
+                BigInteger now = Blockchain.GetHeader(Blockchain.GetHeight()).Timestamp;
 
                 beginTime = Neo.SmartContract.Framework.Helper.AsBigInteger(Storage.Get(Storage.CurrentContext, "starttime"));
                 endTime = Neo.SmartContract.Framework.Helper.AsBigInteger(Storage.Get(Storage.CurrentContext, "closuretime"));
@@ -599,7 +635,7 @@ namespace IntegratorandTradeFee
                 byte[] check = Storage.Get(Storage.CurrentContext, "Vault is Open");
                 byte[] check1 = Storage.Get(Storage.CurrentContext, "Vault is Seal");
 
-                uint now = (uint)args[0];
+                uint now = Blockchain.GetHeader(Blockchain.GetHeight()).Timestamp;
                 if (check1.Equals(0) && check.Equals(1))
                 {
                     Storage.Put(Storage.CurrentContext, "closuretime", now);
@@ -818,3 +854,26 @@ namespace IntegratorandTradeFee
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
