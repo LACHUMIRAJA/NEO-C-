@@ -2,31 +2,24 @@ using Neo.SmartContract.Framework;
 using Neo.SmartContract.Framework.Services.Neo;
 using Neo.SmartContract.Framework.Services.System;
 using System;
-using System.ComponentModel;
 using System.Numerics;
+
 
 namespace IntegratorandTradeFee
 {
     public class Contract1 : SmartContract
     {
-        //[DisplayName("deploy1")]
-        //public static event Action<byte[], uint> deploy1;
+       
 
         public static Object Main(string oper, params Object[] args)
-        {
-
-
-           
-
-
-        byte[] address0 = Neo.SmartContract.Framework.Helper.AsByteArray("abavag");
+        {   
+            byte[] address0 = Neo.SmartContract.Framework.Helper.AsByteArray("AMiSxR6mgYZxhTXpJqzjcnyFBQF6HVaC4W");
             byte[] approver;          
             BigInteger beginTime;
             BigInteger endTime;
             
-            //SELLER-BUYER_PROCESS_FLOW
-
             
+            //SELLER-BUYER_PROCESS_FLOW            
 
             if (oper == "getFeeIndex")
             {
@@ -45,10 +38,98 @@ namespace IntegratorandTradeFee
                 return false;
             }
 
+            if(oper == "getSellerHash")
+            {
+                byte[][] _sellerTokens = (byte[][])args[0];               
+                BigInteger[] _sellerValues = (BigInteger[])args[1];
+                               
+                byte[][] _orderAddresses = new byte[5][];
+                _orderAddresses = (byte[][])args[2];
+
+                BigInteger[] _orderValues = new BigInteger[5];
+                _orderValues = (BigInteger[])args[3];
+
+                byte[] _orderID = (byte[])args[4];
+
+                byte[] sellerHash = null ;
+                int slength = _sellerTokens.Length;
+                Runtime.Notify(slength);
+                byte[] sellerv;// = new byte[length];
+                byte[] sorderv = Neo.SmartContract.Framework.Helper.AsByteArray(_orderValues[3]);
+                byte[] sorderv1 = Neo.SmartContract.Framework.Helper.AsByteArray(_orderValues[0]);
+               
+                if (slength != 0)
+                    Runtime.Log("SellerHash ");
+                for (int j = 0; j < slength; j++)
+                {
+                    sellerv = Neo.SmartContract.Framework.Helper.AsByteArray(_sellerValues[j]);
+                    Runtime.Notify("Seller Hash : ", j);
+                    byte[] sc = _sellerTokens[j].Concat(sellerv);
+                    byte[] sc1 = sorderv.Concat(sorderv1);
+                    byte[] sc2 = _orderAddresses[3].Concat(_orderAddresses[0]);
+                    //byte[] sc3= _orderAddresses[1].Concat(_orderID);
+                    byte[] soa = sc.Concat(sc1);
+                    byte[] soa1 = sc2.Concat(_orderAddresses[1]);
+                    Runtime.Log("checking");
+                    sellerHash = Sha256(soa.Concat(soa1));
+                    Runtime.Log("checking");
+                    Storage.Put(Storage.CurrentContext, sellerHash, "orderHash");
+                    Runtime.Notify(sellerHash);
+                    
+                   
+                }
+                return sellerHash;
+                
+
+            }
+
+
+            if(oper == "getBuyerHash")
+            {
+               
+                byte[][] _buyerTokens = (byte[][])args[0];
+                
+                BigInteger[] _buyerValues = (BigInteger[])args[1];
+                byte[][] _orderAddresses = new byte[5][];
+                _orderAddresses = (byte[][])args[2];
+
+                BigInteger[] _orderValues = new BigInteger[5];
+                _orderValues = (BigInteger[])args[3];
+
+                byte[] _orderID = (byte[])args[4];
+
+                byte[] buyerHash = null;
+                int blength = _buyerTokens.Length;
+                byte[] buyerv;
+                byte[] borderv = Neo.SmartContract.Framework.Helper.AsByteArray(_orderValues[4]);
+                byte[] borderv1 = Neo.SmartContract.Framework.Helper.AsByteArray(_orderValues[0]);
+                if (blength != 0) 
+                    Runtime.Log("BuyerHash ");
+                for (int k = 0; k < blength; k++)
+                {
+                    buyerv = Neo.SmartContract.Framework.Helper.AsByteArray(_buyerValues[k]);
+                    Runtime.Notify("Buyer Hash : ", k);
+                    byte[] bc = _buyerTokens[k].Concat(buyerv);
+                    byte[] bc1 = borderv.Concat(borderv1);
+                    byte[] bc2 = _orderAddresses[4].Concat(_orderAddresses[0]);
+                    //byte[] bc3= _orderAddresses[1].Concat(_orderID);
+                    byte[] boa = bc.Concat(bc1);
+                    byte[] boa1 = bc2.Concat(_orderAddresses[2]);
+                     buyerHash = Sha256(boa.Concat(boa1));
+                    Storage.Put(Storage.CurrentContext, buyerHash, "orderHash");
+                    Runtime.Notify(buyerHash);
+                   
+                }
+                return buyerHash;
 
 
 
-            if (oper == "getTwoWayOrderHash")
+
+
+            }
+
+
+            if (oper == "getTwoWayOrderHash") //[["sellerT","sellerT1","SellerT2"],["buyerT","buyerT1","buyerT2"],[500,450,400],[458,444,380],["AA1","BB1","CC1","DD1","EE1"],[540,450,580,550,650],["OI01"]]
             {
                 byte[][] _sellerTokens =(byte[][])args[0];
                 byte[][] _buyerTokens = (byte[][])args[1];
@@ -66,29 +147,23 @@ namespace IntegratorandTradeFee
 
                 
 
-               /* int length = _sellerTokens.Length;
-                byte[] sellerv;// = new byte[length];
-                byte[] orderv = Neo.SmartContract.Framework.Helper.AsByteArray(_orderValues[3]);
-                byte[] orderv1 = Neo.SmartContract.Framework.Helper.AsByteArray(_orderValues[0]);
-                //for (int j = 0; j <= length; j++)
-                {
-                    sellerv = Neo.SmartContract.Framework.Helper.AsByteArray(_sellerValues[0]);
-                    //sellerv[0][0] = (byte)_sellerValues[0];
-                    Runtime.Notify("START");
-                  
-                    Runtime.Notify("STARTi");
-                    byte[] cc = _sellerTokens[0].Concat(sellerv);
-                    byte[] cc1 = orderv.Concat(orderv1);
-                    byte[] cc2 = _orderAddresses[0].Concat(_orderAddresses[1]);
-                    byte[] cc3= _orderAddresses[2].Concat(_orderID);
-                    byte[] oa = cc.Concat(cc1);
-                    byte[] oa1 = cc2.Concat(cc3);
-                    byte[] sellerHash = Sha256(oa.Concat(oa1));
-                    //byte[] sellerHash = Hash256(_sellerTokens[0].Concat(sellerv[0]).Concat(orderv).Concat(orderv1).Concat(_orderAddresses[0]).Concat(_orderAddresses[1]).Concat(_orderAddresses[2]).Concat(_orderID));
-                    //BuyerHash = Sha256(_buyerTokens, _buyerValues, _orderValues[4], _orderValues[1], _orderAddresses[4], _orderAddresses[0], _orderAddresses[2], _orderID);
-                    Runtime.Notify(sellerHash);
-                }*/
-                return true;
+                object SellerHash = Main("getSellerHash", _sellerTokens, _sellerValues, _orderAddresses, _orderValues, _orderID);
+                
+                object BuyerHash = Main("getBuyerHash", _buyerTokens, _buyerValues, _orderAddresses, _orderValues, _orderID);
+
+
+
+                return SellerHash;
+                /* string SH = (string)SellerHash;
+                byte[] BH = (byte[])BuyerHash;
+
+                 byte[] twc = (ExecutionEngine.ExecutingScriptHash).Concat(SH);
+                 byte[] twc1 = BH.Concat(_orderID);
+
+                 byte[] TWH = Sha256(twc.Concat(twc1));
+
+                 return TWH;*/
+
             }
 
 
@@ -236,7 +311,7 @@ namespace IntegratorandTradeFee
                 Transaction tx = (Transaction)ExecutionEngine.ScriptContainer;
                 approver = (byte[])args[0];
                 Storage.Put(Storage.CurrentContext, "Approver", approver);
-                //deploy1(approver, 5);
+               
                 
                 return true;
             }
@@ -664,7 +739,7 @@ namespace IntegratorandTradeFee
 
                 Runtime.Log("Order  Location Checked");
                 // Storage.Get(Storage.CurrentContext, orderHashes);
-                return Storage.Get(Storage.CurrentContext, orderId);
+                return Storage.Get(Storage.CurrentContext, hash);
 
 
 
@@ -846,7 +921,7 @@ namespace IntegratorandTradeFee
                 byte[] add2 = (byte[])args[1];
                 return Storage.Get(Storage.CurrentContext, add1.Concat(add2));
 
-            }
+            }          
 
 
 
@@ -854,26 +929,3 @@ namespace IntegratorandTradeFee
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
