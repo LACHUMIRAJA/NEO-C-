@@ -381,14 +381,15 @@ namespace Dex1WayConverted
                         sellerv = Neo.SmartContract.Framework.Helper.AsByteArray(_sellerValues[j]);
                         Runtime.Notify("Seller Hash : ", j);
                         byte[] sc = _sellerTokens[j].Concat(sellerv);
+
                         byte[] sc1 = sorderv.Concat(sorderv1);
                         byte[] sc2 = _orderAddresses[3].Concat(_orderAddresses[0]);
-                        //byte[] sc3= _orderAddresses[1].Concat(_orderID);
-                        byte[] soa = sc.Concat(sc1);
-                        byte[] soa1 = sc2.Concat(_orderAddresses[1]);
-                        Runtime.Log("checking");
+                    byte[] soa = sc.Concat(sc1).Concat(_orderID);
+                    byte[] soa1 = sc2.Concat(_orderAddresses[1]);
+
+                    
                         sellerHash = Sha256(soa.Concat(soa1));
-                        Runtime.Log("checking");
+                    
                         Storage.Put(Storage.CurrentContext, sellerHash, "orderHash");
                         Runtime.Notify(sellerHash);
 
@@ -429,8 +430,8 @@ namespace Dex1WayConverted
                         byte[] bc = _buyerTokens[k].Concat(buyerv);
                         byte[] bc1 = borderv.Concat(borderv1);
                         byte[] bc2 = _orderAddresses[4].Concat(_orderAddresses[0]);
-                        //byte[] bc3= _orderAddresses[1].Concat(_orderID);
-                        byte[] boa = bc.Concat(bc1);
+                       
+                        byte[] boa = bc.Concat(bc1).Concat(_orderID);
                         byte[] boa1 = bc2.Concat(_orderAddresses[2]);
                         buyerHash = Sha256(boa.Concat(boa1));
                         Storage.Put(Storage.CurrentContext, buyerHash, "orderHash");
@@ -462,29 +463,18 @@ namespace Dex1WayConverted
 
 
 
-                    object SellerHash = Main("getSellerHash", _sellerTokens, _sellerValues, _orderAddresses, _orderValues, _orderID);
+                    byte[] SellerHash = (byte[]) Main("getSellerHash", _sellerTokens, _sellerValues, _orderAddresses, _orderValues, _orderID);
 
-                    object BuyerHash = Main("getBuyerHash", _buyerTokens, _buyerValues, _orderAddresses, _orderValues, _orderID);
+                   byte[] BuyerHash = (byte[]) Main("getBuyerHash", _buyerTokens, _buyerValues, _orderAddresses, _orderValues, _orderID);
 
+                
 
+                   
 
-                    return SellerHash;
-                    /*byte[] TWC = Neo.SmartContract.Framework.Helper.AsByteArray(SellerHash.GetHashCode()).Concat(Neo.SmartContract.Framework.Helper.AsByteArray(BuyerHash.GetHashCode()));
-
-                    return TWC;
-                    /* byte[] 
-                   //  string SH = Neo.SmartContract.Framework.Helper.Concat(SellerHash,BuyerHash);
-
-
-                   byte[] BH = null;// (byte[])BuyerHash;
-
-                      byte[] twc = ((byte[])ExecutionEngine.ExecutingScriptHash).Concat(BH);
-                    /*  byte[] twc1 = BH.Concat(_orderID);
-
-                      byte[] TWH = Sha256(twc.Concat(twc1));
-
-                      return TWH;*/
-
+                      byte[] twc = (ExecutionEngine.ExecutingScriptHash).Concat(SellerHash);
+                    byte[] twc1 = BuyerHash.Concat(twc).Concat(_orderID);
+                    
+                return Hash256(twc1);
                 }
 
 
