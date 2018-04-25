@@ -18,6 +18,10 @@ namespace Dex1WayConverted
             BigInteger beginTime;
             BigInteger endTime;
 
+           
+
+           
+
 
             if (oper == "Deploy")
             {
@@ -150,7 +154,7 @@ namespace Dex1WayConverted
                     byte[] check1 = Storage.Get(Storage.CurrentContext, "Vault is Seal");
 
 
-                    BigInteger now = Blockchain.GetHeader(Blockchain.GetHeight()).Timestamp;// (BigInteger)args[2];// Runtime.Time;
+                    BigInteger now = Blockchain.GetHeader(Blockchain.GetHeight()).Timestamp;
                     Runtime.Notify(now);
                     if (check1.Equals(0) && (check.Equals(0) && startTime <= now && closureTime >= now && closureTime >= startTime))
                     {
@@ -467,13 +471,17 @@ namespace Dex1WayConverted
 
                    byte[] BuyerHash = (byte[]) Main("getBuyerHash", _buyerTokens, _buyerValues, _orderAddresses, _orderValues, _orderID);
 
-                
+
+
+                    //return SellerHash;
+                   
 
                    
 
                       byte[] twc = (ExecutionEngine.ExecutingScriptHash).Concat(SellerHash);
                     byte[] twc1 = BuyerHash.Concat(twc).Concat(_orderID);
-                    
+                      //byte[] TWH = twc.Concat(twc1);
+
                 return Hash256(twc1);
                 }
 
@@ -497,13 +505,15 @@ namespace Dex1WayConverted
                     byte[] _buyerHash = (byte[])args[7];
 
 
-                    if (!(Main("ecverify", _sellerHash, _v[0], _sr, _ss, _orderAddresses[1])).Equals(address0))
+                    //if (!(Main("ecverify", _sellerHash, _v[0], _sr, _ss, _orderAddresses[1])).Equals(address0))
+                    if(Runtime.CheckWitness(_orderAddresses[1]))
                     {
 
                         return _orderAddresses[1];
                     }
 
-                    if (!(Main("ecverify", _sellerHash, _v[1], _sr, _ss, _orderAddresses[2])).Equals(address0))
+                    //if (!(Main("ecverify", _sellerHash, _v[1], _sr, _ss, _orderAddresses[2])).Equals(address0))
+                    if(Runtime.CheckWitness(_orderAddresses[2]))
                     {
                         return _orderAddresses[2];
                     }
@@ -513,12 +523,12 @@ namespace Dex1WayConverted
                 }
 
 
+            
+
+            //One_Way_Full_Fil_Function_Pending
 
 
-                //One_Way_Full_Fil_Function_Pending
-
-
-                if (oper == "transferForTokens") //[["sellerT","sellerT1"],["buyerT","buyerT1"],[500,450],[458,444],["AA1","BB1","CC1"],[540,450,580]]
+            if (oper == "transferForTokens") //[["sellerT","sellerT1"],["buyerT","buyerT1"],[500,450],[458,444],["AA1","BB1","CC1"],[540,450,580]]
                 {
                     byte[][] _sellerTokens = (byte[][])args[0];
                     byte[][] _buyerTokens = (byte[][])args[1];
@@ -738,7 +748,7 @@ namespace Dex1WayConverted
                 }
 
 
-                
+              
 
 
                 if (oper == "orderLocated")
@@ -843,9 +853,10 @@ namespace Dex1WayConverted
                 }
 
 
+                
 
 
-                if (oper == "deposit")
+            if (oper == "deposit")
                 {
                     byte[] acc = (byte[])args[0];
                     BigInteger val = (BigInteger)args[1];
@@ -933,7 +944,98 @@ namespace Dex1WayConverted
 
                 }
 
-            return false;
+
+
+            /*if (oper == "oneWayFulfillPO")
+             {
+                  byte[] _sellerTokens = (byte[])args[0];
+                  byte[] _buyerTokens = (byte[])args[1];
+                  BigInteger[] _sellerValues = (BigInteger[])args[2];
+                  BigInteger[] _buyerValues = (BigInteger[])args[3];
+                  byte[][] _orderAddresses = new byte[5][];
+                  _orderAddresses = (byte[][])args[4];
+                  BigInteger[] _orderValues = new BigInteger[5];
+                  _orderValues = (BigInteger[])args[5];
+                  BigInteger[] _v = new BigInteger[2];
+                  _v = (BigInteger[])args[6];
+                  byte[] _br = (byte[])args[7];
+                  byte[] _bs = (byte[])args[8];
+                  byte[] _sr = (byte[])args[9];
+                  byte[] _ss = (byte[])args[10];
+                  byte[] _orderID = (byte[])args[11];
+                  BigInteger now = Blockchain.GetHeader(Blockchain.GetHeight()).Timestamp;
+
+                  byte[] check = Storage.Get(Storage.CurrentContext, "Active");
+                  byte[] check1 = Storage.Get(Storage.CurrentContext, address0);
+
+                  if (check.Equals(1) && _orderValues[2].CompareTo(now) == 1 && _orderValues[2].CompareTo(now) == 0)
+                  {
+
+                      if (!address0.Equals(_orderAddresses[1]) && (!address0.Equals(_orderAddresses[2])) && check1.Equals(0))
+                      {
+                          //event
+                          return false;
+                      }
+                  }
+
+
+                  byte[] SellerHash = (byte[]) Main("getSellerHash", _sellerTokens, _sellerValues, _orderAddresses, _orderValues, _orderID);
+
+                  byte[] BuyerHash = (byte[]) Main("getBuyerHash", _buyerTokens, _buyerValues, _orderAddresses, _orderValues, _orderID);
+
+
+                  if (Main("basicSigValidations", _orderAddresses, _v, _sr, _ss, _br, _bs, SellerHash, BuyerHash) != null)
+                  {
+                      //event
+                      return false;
+                  }
+
+                  //event
+
+
+                  byte[] twc = (ExecutionEngine.ExecutingScriptHash).Concat(SellerHash);
+                  byte[] twc1 = BuyerHash.Concat(twc).Concat(_orderID);
+
+                  byte[] TWH = Hash256(twc.Concat(twc1));
+
+                  if ((Main("orderExists",  TWH , _orderID) != null))
+                  {
+
+                      if (Main("validExchangeFee", _orderAddresses[3], _orderAddresses[4], _orderAddresses[0], _orderAddresses[1]) != null)
+
+                      {
+                          byte[] fi = (byte[]) Main("getFeeIndex", _orderAddresses[3]);
+                          byte[] fi1 = (byte[])Main("getFeeIndex", _orderAddresses[4]);
+                          BigInteger FeeIndex = Neo.SmartContract.Framework.Helper.AsBigInteger(fi);
+                          BigInteger FeeIndex1 = Neo.SmartContract.Framework.Helper.AsBigInteger(fi1);
+
+                          byte[] ov = (byte[])(Main("calcTradeFee", _orderValues[0], FeeIndex));
+                          byte[] ov1 = (byte[])(Main("calcTradeFee", _orderValues[1], FeeIndex1));
+
+                          _orderValues[0] = Neo.SmartContract.Framework.Helper.AsBigInteger(ov) ;
+                          _orderValues[1] = Neo.SmartContract.Framework.Helper.AsBigInteger(ov1);
+
+                          if (_orderValues[0] > 0 && _orderValues[1] > 0 && _orderAddresses[0] != 0 && _orderAddresses[1] != 0 && _orderAddresses[2] != 0 && _orderAddresses[1] != _orderAddresses[2] && _sellerTokens.Length > 0 && _sellerValues.Length > 0 && _sellerTokens.Length == _sellerValues.Length && _buyerTokens.Length > 0 && _buyerValues.Length > 0 && _buyerTokens.Length == _buyerValues.Length)
+                          {
+                              if (Main("validAuthorization", _sellerTokens, _buyerTokens, _buyerValues, _orderAddresses, _orderValues) != null)
+                              {
+                                  return false;
+                              }
+                              //event
+
+                              Main("transferforTokens", _sellerTokens, _buyerTokens, _sellerValues, _buyerValues, _orderAddresses, _orderValues);
+                              Main("storeInVault",TWH, _orderID);
+                              //event
+
+                          }
+                      }
+                  }
+                  ///------
+
+             }*/
+
+
+return false;
         }
            
 
